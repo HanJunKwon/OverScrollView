@@ -4,14 +4,12 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
-import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.MotionEvent.ACTION_CANCEL
 import android.view.MotionEvent.ACTION_DOWN
 import android.view.MotionEvent.ACTION_MOVE
 import android.view.MotionEvent.ACTION_UP
 import android.view.View
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.ScrollView
 import com.kwon.overscrollview.OverScrollView.SCROLL_DIRECTION.Companion.SCROLL_DIRECTION_BOTTOM
@@ -19,7 +17,7 @@ import com.kwon.overscrollview.OverScrollView.SCROLL_DIRECTION.Companion.SCROLL_
 import kotlin.math.abs
 
 class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context, attrs) {
-    private var isOverScroll = true
+    private var isOverScroll = false
 
     @SCROLL_DIRECTION
     private var overScrollDirection = SCROLL_DIRECTION_TOP
@@ -50,7 +48,7 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
     }
 
     override fun onTouchEvent(ev: MotionEvent?): Boolean {
-        Log.d(">>>", "onTouchEvent() :: action: ${ev?.action}, rawY: ${ev?.rawY}, y: ${ev?.y}")
+//        Log.d(">>>", "onTouchEvent() :: action: ${ev?.action}, rawY: ${ev?.rawY}, y: ${ev?.y}")
 
         if (isOverScroll && ev?.action == ACTION_MOVE) {
             if (overScrollStartY == -1f) {
@@ -60,6 +58,8 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
             when (overScrollDirection) {
                 SCROLL_DIRECTION_TOP -> {
                     overScrollPadding = (abs(overScrollStartY - ev.y).toInt())/2
+                    Log.d(">>>", "overScrollPadding: ${overScrollPadding}")
+
                     setPadding(0, overScrollPadding, 0, 0)
 //                    Log.d(">>>", "onTouchEvent() :: SCROLL DIRECTION TOP")
                 }
@@ -69,6 +69,8 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
 //                    Log.d(">>>", "onTouchEvent() :: SCROLL DIRECTION BOTTOM")
                 }
             }
+
+            return false
         } else if (isOverScroll && (ev?.action == ACTION_CANCEL || ev?.action == ACTION_UP)) {
             overScrollRecoveredValueAnimator.apply {
                 setIntValues(overScrollPadding, 0)
@@ -103,17 +105,13 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
 
     override fun onOverScrolled(scrollX: Int, scrollY: Int, clampedX: Boolean, clampedY: Boolean) {
         super.onOverScrolled(scrollX, scrollY, clampedX, clampedY)
-        Log.d(">>>", "onOverScrolled() :: scrollX: $scrollX, scrollY: $scrollY, clampedX: ${clampedX}, clampedY: ${clampedY}")
+//        Log.d(">>>", "onOverScrolled() :: scrollX: $scrollX, scrollY: $scrollY, clampedX: ${clampedX}, clampedY: ${clampedY}")
 
         if (scrollHeight == -1) return
 
         if (clampedY) {
             isOverScroll = (scrollY == 0 || scrollY == scrollHeight)
             overScrollDirection = if (scrollY == 0) SCROLL_DIRECTION_TOP else SCROLL_DIRECTION_BOTTOM
-        } else {
-            isOverScroll = false
-            overScrollStartY = -1f
-            overScrollPadding = 0
         }
     }
 
