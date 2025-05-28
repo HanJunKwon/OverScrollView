@@ -11,6 +11,8 @@ import android.view.MotionEvent.ACTION_DOWN
 import android.view.MotionEvent.ACTION_MOVE
 import android.view.MotionEvent.ACTION_UP
 import android.view.View
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.LinearInterpolator
 import android.widget.ScrollView
 import com.kwon.overscrollview.OverScrollView.SCROLL_DIRECTION.Companion.SCROLL_DIRECTION_BOTTOM
 import com.kwon.overscrollview.OverScrollView.SCROLL_DIRECTION.Companion.SCROLL_DIRECTION_TOP
@@ -29,7 +31,8 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
     private var overScrollPadding = 0
 
     private var overScrollRecoveredValueAnimator = ValueAnimator.ofInt().apply {
-        duration = 600L
+        duration = 250L
+        interpolator = LinearInterpolator()
     }
 
     init {
