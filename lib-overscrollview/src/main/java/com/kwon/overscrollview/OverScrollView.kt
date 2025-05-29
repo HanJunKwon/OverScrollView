@@ -78,7 +78,7 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
                 }
             }
 
-            ACTION_UP, ACTION_CANCEL -> {
+            ACTION_POINTER_UP, ACTION_UP, ACTION_CANCEL -> {
                 // 오버 스크롤을 원래 상태로 되돌리는 애니메이션 시작
                 setScrollRecoverValueAnimation(overScrollPadding, 0)
                 startOverScrollRecoverAnimation()
@@ -90,28 +90,21 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
                         overScrollStartY = ev.y
                     }
 
+                    val distance = abs(overScrollStartY - ev.y).toInt()
+                    overScrollPadding = distance / 2
+
                     when (overScrollDirection) {
                         SCROLL_DIRECTION_TOP -> {
-                            val distance = abs(overScrollStartY - ev.y).toInt()
-                            overScrollPadding = distance / 2
                             setPadding(0, overScrollPadding, 0, 0)
-//                    Log.d(">>>", "onTouchEvent() :: SCROLL DIRECTION TOP")
                         }
 
                         SCROLL_DIRECTION_BOTTOM -> {
-                            overScrollPadding = (abs(overScrollStartY - ev.y).toInt()) / 2
                             setPadding(0, 0, 0, overScrollPadding)
-//                    Log.d(">>>", "onTouchEvent() :: SCROLL DIRECTION BOTTOM")
                         }
                     }
 
                     return false
                 }
-            }
-
-            ACTION_POINTER_UP -> {
-                setScrollRecoverValueAnimation(overScrollPadding, 0)
-                startOverScrollRecoverAnimation()
             }
         }
 
