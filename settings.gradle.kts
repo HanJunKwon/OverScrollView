@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "OverScrollViewSample"
 include(":app")
- 
+include(":lib-overscrollview")
