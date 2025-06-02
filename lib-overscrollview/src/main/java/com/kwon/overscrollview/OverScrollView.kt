@@ -58,9 +58,9 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
         addUpdateListener { animation ->
             val value = animation.animatedValue as Int
             if (overScrollDirection == SCROLL_DIRECTION_TOP) {
-                setPadding(0, value, 0, 0)
+                getChildAt(0).translationY = value.toFloat()
             } else {
-                setPadding(0, 0, 0, value)
+                getChildAt(0).translationY = -value.toFloat()
             }
         }
     }
@@ -95,11 +95,11 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
 
                     when (overScrollDirection) {
                         SCROLL_DIRECTION_TOP -> {
-                            setPadding(0, overScrollPadding, 0, 0)
+                            getChildAt(0).translationY = overScrollPadding.toFloat()
                         }
 
                         SCROLL_DIRECTION_BOTTOM -> {
-                            setPadding(0, 0, 0, overScrollPadding)
+                            getChildAt(0).translationY = -overScrollPadding.toFloat()
                         }
                     }
 
@@ -116,8 +116,9 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
 
         if (scrollViewHeight == -1) return
 
+        isOverScroll = clampedY
+
         if (clampedY) {
-            isOverScroll = (scrollY == 0 || scrollY == scrollViewHeight)
             overScrollDirection = if (scrollY == 0) SCROLL_DIRECTION_TOP else SCROLL_DIRECTION_BOTTOM
         }
     }
