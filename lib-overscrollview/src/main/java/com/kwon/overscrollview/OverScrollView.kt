@@ -13,6 +13,7 @@ import android.view.MotionEvent.ACTION_POINTER_UP
 import android.view.MotionEvent.ACTION_UP
 import android.view.animation.LinearInterpolator
 import android.widget.ScrollView
+import androidx.core.content.withStyledAttributes
 import com.kwon.overscrollview.OverScrollView.SCROLL_DIRECTION.Companion.SCROLL_DIRECTION_BOTTOM
 import com.kwon.overscrollview.OverScrollView.SCROLL_DIRECTION.Companion.SCROLL_DIRECTION_TOP
 import kotlin.math.abs
@@ -42,7 +43,9 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
 
     private var overScrollStartY = -1f
 
-    private var overScrollPadding = 0
+    private var overScrollTranslationY = 0f
+
+    private var overScrollTranslationFactor = 0.33f
 
     private var overScrollRecoveredValueAnimator = ValueAnimator.ofInt().apply {
         duration = 250L
@@ -52,35 +55,40 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
                 super.onAnimationEnd(animation)
                 isOverScroll = false
                 overScrollStartY = -1f
-                setOverScrollPaddingInternal(0)
+                setOverScrollTranslationYInternal(0f)
             }
         })
         addUpdateListener { animation ->
-            val value = animation.animatedValue as Int
+            val value = animation.animatedValue as Float
             if (overScrollDirection == SCROLL_DIRECTION_TOP) {
-                getChildAt(0).translationY = value.toFloat()
+                getChildAt(0).translationY = value
             } else {
-                getChildAt(0).translationY = -value.toFloat()
+                getChildAt(0).translationY = -value
             }
         }
     }
 
     init {
         overScrollMode = OVER_SCROLL_NEVER
+
+        context.withStyledAttributes(attrs, R.styleable.OverScrollView) {
+            setOverScrollTranslationFactorInternal(getFloat(R.styleable.OverScrollView_overScrollTranslationFactor, 0.33f))
+
+        }
     }
 
     override fun onTouchEvent(ev: MotionEvent?): Boolean {
         when (ev?.action) {
             ACTION_DOWN -> {
                 if (overScrollRecoveredValueAnimator.isRunning) {
-                    setOverScrollPaddingInternal(overScrollRecoveredValueAnimator.animatedValue as Int)
+                    setOverScrollTranslationYInternal(overScrollRecoveredValueAnimator.animatedValue as Float)
                     overScrollRecoveredValueAnimator.pause()
                 }
             }
 
             ACTION_POINTER_UP, ACTION_UP, ACTION_CANCEL -> {
                 // 오버 스크롤을 원래 상태로 되돌리는 애니메이션 시작
-                setScrollRecoverValueAnimation(overScrollPadding, 0)
+                setScrollRecoverValueAnimation(overScrollTranslationY, 0f)
                 startOverScrollRecoverAnimation()
             }
 
@@ -91,15 +99,15 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
                     }
 
                     val distance = abs(overScrollStartY - ev.y).toInt()
-                    overScrollPadding = distance / 2
+                    overScrollTranslationY = distance * overScrollTranslationFactor
 
                     when (overScrollDirection) {
                         SCROLL_DIRECTION_TOP -> {
-                            getChildAt(0).translationY = overScrollPadding.toFloat()
+                            getChildAt(0).translationY = overScrollTranslationY
                         }
 
                         SCROLL_DIRECTION_BOTTOM -> {
-                            getChildAt(0).translationY = -overScrollPadding.toFloat()
+                            getChildAt(0).translationY = -overScrollTranslationY
                         }
                     }
 
@@ -132,12 +140,29 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
         }
     }
 
-    private fun setOverScrollPaddingInternal(padding: Int) {
-        this.overScrollPadding = padding
+    private fun setOverScrollTranslationFactorInternal(factor: Float) {
+        check(factor > 0 && factor <= 1f) {
+            throw IllegalArgumentException("Invalid overScrollTranslationFactor: must be between 0 and 1")
+        }
+
+        this.overScrollTranslationFactor = factor
     }
 
-    private fun setScrollRecoverValueAnimation(vararg values: Int) {
-        overScrollRecoveredValueAnimator.setIntValues(*values)
+    fun setOverScrollTranslationFactor(factor: Float) {
+        if (overScrollRecoveredValueAnimator.isRunning) {
+            Log.e("OverScrollView", "Cannot change overScrollTranslationFactor while translation animation is running")
+            return
+        }
+
+        setOverScrollTranslationFactorInternal(factor)
+    }
+
+    private fun setOverScrollTranslationYInternal(padding: Float) {
+        this.overScrollTranslationY = padding
+    }
+
+    private fun setScrollRecoverValueAnimation(vararg values: Float) {
+        overScrollRecoveredValueAnimator.setFloatValues(*values)
     }
 
     private fun startOverScrollRecoverAnimation() {
