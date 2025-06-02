@@ -17,6 +17,7 @@ import androidx.core.content.withStyledAttributes
 import com.kwon.overscrollview.OverScrollView.SCROLL_DIRECTION.Companion.SCROLL_DIRECTION_BOTTOM
 import com.kwon.overscrollview.OverScrollView.SCROLL_DIRECTION.Companion.SCROLL_DIRECTION_TOP
 import kotlin.math.abs
+import kotlin.time.Duration
 
 
 class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context, attrs) {
@@ -47,8 +48,10 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
 
     private var overScrollTranslationFactor = 0.33f
 
+    private var overScrollRecoveredAnimDuration = 250L
+
     private var overScrollRecoveredValueAnimator = ValueAnimator.ofInt().apply {
-        duration = 250L
+        duration = overScrollRecoveredAnimDuration
         interpolator = LinearInterpolator()
         addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationEnd(animation: android.animation.Animator) {
@@ -73,7 +76,7 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
 
         context.withStyledAttributes(attrs, R.styleable.OverScrollView) {
             setOverScrollTranslationFactorInternal(getFloat(R.styleable.OverScrollView_overScrollTranslationFactor, 0.33f))
-
+            setOverScrollRecoveredAnimDurationInternal(getInt(R.styleable.OverScrollView_overScrollRecoverDuration, 250).toLong())
         }
     }
 
@@ -155,6 +158,22 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
         }
 
         setOverScrollTranslationFactorInternal(factor)
+    }
+
+    private fun setOverScrollRecoveredAnimDurationInternal(duration: Long) {
+        check (duration in 100L..500L) {
+            throw IllegalArgumentException("duration must be between 100 and 500 milliseconds (inclusive)")
+        }
+
+        overScrollRecoveredAnimDuration = duration
+    }
+
+    fun setOverScrollRecoveredAnimDuration(duration: Long) {
+        setOverScrollRecoveredAnimDurationInternal(duration)
+    }
+
+    fun setOverScrollRecoveredAnimDuration(duration: Duration) {
+        setOverScrollRecoveredAnimDurationInternal(duration.inWholeMilliseconds)
     }
 
     private fun setOverScrollTranslationYInternal(padding: Float) {
