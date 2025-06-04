@@ -20,7 +20,11 @@ import kotlin.math.abs
 import kotlin.time.Duration
 
 
-class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context, attrs) {
+class OverScrollView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttrs: Int = 0
+): ScrollView(context, attrs, defStyleAttrs) {
 
     /**
      * 사용자가 스크롤을 할 때, 스크롤뷰의 상단 또는 하단에서 오버스크롤이 발생했는지 여부
@@ -50,6 +54,8 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
 
     private var overScrollRecoveredAnimDuration = 250L
 
+    private var overScrollListener: OverScrollListener? = null
+
     private var overScrollRecoveredValueAnimator = ValueAnimator.ofInt().apply {
         duration = overScrollRecoveredAnimDuration
         interpolator = LinearInterpolator()
@@ -58,6 +64,7 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
                 super.onAnimationEnd(animation)
                 isOverScroll = false
                 overScrollStartY = -1f
+                overScrollListener?.onOverScrolling(0f)
                 setOverScrollTranslationYInternal(0f)
             }
         })
@@ -65,8 +72,10 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
             val value = animation.animatedValue as Float
             if (overScrollDirection == SCROLL_DIRECTION_TOP) {
                 getChildAt(0).translationY = value
+                overScrollListener?.onOverScrolling(value)
             } else {
                 getChildAt(0).translationY = -value
+                overScrollListener?.onOverScrolling(-value)
             }
         }
     }
@@ -107,10 +116,12 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
                     when (overScrollDirection) {
                         SCROLL_DIRECTION_TOP -> {
                             getChildAt(0).translationY = overScrollTranslationY
+                            overScrollListener?.onOverScrolling(overScrollTranslationY)
                         }
 
                         SCROLL_DIRECTION_BOTTOM -> {
                             getChildAt(0).translationY = -overScrollTranslationY
+                            overScrollListener?.onOverScrolling(-overScrollTranslationY)
                         }
                     }
 
@@ -188,10 +199,18 @@ class OverScrollView(context: Context, attrs: AttributeSet): ScrollView(context,
         overScrollRecoveredValueAnimator.start()
     }
 
+    fun setOverScrollListener(l: OverScrollListener?) {
+        this.overScrollListener = l
+    }
+
     annotation class SCROLL_DIRECTION {
         companion object {
             const val SCROLL_DIRECTION_TOP = 0
             const val SCROLL_DIRECTION_BOTTOM = 1
         }
+    }
+
+    interface OverScrollListener {
+        fun onOverScrolling(translationY: Float)
     }
 }
