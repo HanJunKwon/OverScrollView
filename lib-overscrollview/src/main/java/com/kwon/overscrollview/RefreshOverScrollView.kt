@@ -3,10 +3,9 @@ package com.kwon.overscrollview
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import android.view.ViewGroup
 import android.widget.FrameLayout
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
+import androidx.annotation.LayoutRes
+import androidx.core.view.isEmpty
 
 class RefreshOverScrollView(context: Context, attrs: AttributeSet): FrameLayout(context, attrs) {
     private val refreshLayout: RefreshLayout = RefreshLayout(context).apply {
@@ -14,7 +13,6 @@ class RefreshOverScrollView(context: Context, attrs: AttributeSet): FrameLayout(
             LayoutParams.MATCH_PARENT,
             0
         )
-        setBackgroundColor(ContextCompat.getColor(context, com.google.android.material.R.color.design_default_color_error))
     }
     private val overScrollView: OverScrollView = OverScrollView(context).apply {
         layoutParams = LayoutParams(
@@ -55,17 +53,6 @@ class RefreshOverScrollView(context: Context, attrs: AttributeSet): FrameLayout(
         }
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-
-        val widthMode = MeasureSpec.getMode(widthMeasureSpec)
-        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
-
-//        if (widthMode == MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY) {
-//            refreshLayout.translationY = (-refreshLayout.height).toFloat()
-//        }
-    }
-
     override fun addView(child: View?) {
         if (child === overScrollView || child === refreshLayout) {
             super.addView(child)
@@ -82,19 +69,19 @@ class RefreshOverScrollView(context: Context, attrs: AttributeSet): FrameLayout(
         }
     }
 
-//    override fun addView(child: View?, params: LayoutParams?) {
-//        if (child === overScrollView || child === refreshLayout) {
-//            super.addView(child, params)
-//        } else {
-//            overScrollView.addView(child, params)
-//        }
-//    }
-//
-//    override fun addView(child: View?, index: Int, params: LayoutParams?) {
-//        if (child === overScrollView || child === refreshLayout) {
-//            super.addView(child, index, params)
-//        } else {
-//            overScrollView.addView(child, index, params)
-//        }
-//    }
+    fun setCustomHeader(view: View) {
+        check (refreshLayout.isEmpty()) {
+            throw IllegalArgumentException("")
+        }
+
+        refreshLayout.addView(view)
+    }
+
+    fun setCustomHeader(@LayoutRes viewRes: Int) {
+        check (refreshLayout.isEmpty()) {
+            throw IllegalArgumentException("")
+        }
+
+        refreshLayout.addViewResource(viewRes)
+    }
 }
